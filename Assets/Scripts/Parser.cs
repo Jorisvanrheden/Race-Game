@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -26,20 +26,28 @@ public class Parser {
 		saveFile.rotation = int.Parse (newRotationString);
 		
 		return saveFile;
-		
 	}
 
-	public Vector2 getStartPart(int mapID){
-		Vector2 tile_ref = new Vector2 ();
+	public Vector3 getStartPart(int mapID){
+		Vector3 tile_ref = new Vector3 ();
 		string data = PlayerPrefs.GetString ("Start" + mapID.ToString());
+
+		int dash_1 = 99;
+		int dash_2 = 99;
 
 		for (int i=0; i<data.Length; i++) {
 			if(data[i].ToString() == "/"){
-				tile_ref.x = int.Parse(data.Substring(0,i));
-				tile_ref.y = int.Parse(data.Substring(i+1,data.Length-1-i));
-				break;
+				if(dash_1 == 99){
+					dash_1 = i;
+				}
+				else dash_2 = i;
 			}
 		}
+		tile_ref.x = int.Parse(data.Substring(0,dash_1));
+		tile_ref.y = int.Parse(data.Substring(dash_1+1,dash_2-1 - dash_1));
+		tile_ref.z = int.Parse (data.Substring (dash_2 + 1, data.Length - 1 - dash_2));
+		Debug.Log (tile_ref);
+
 		return tile_ref;
 	}
 
@@ -58,7 +66,7 @@ public class Parser {
 				for (int j=0; j<data.Length; j++) {
 					if(data[j].ToString() == "/"){
 						waypoint.x = int.Parse(data.Substring(0,j))*20;
-						waypoint.y = 1;
+						waypoint.y = 2.3f;
 						waypoint.z = int.Parse(data.Substring(j+1,data.Length-1-j))*20;
 
 						path.Add(waypoint);

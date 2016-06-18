@@ -18,8 +18,6 @@ public class Menu : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		cameraControl = Camera.main.GetComponent<CameraController> ();
-
-		print ("TEST");
 	}
 	
 	// Update is called once per frame
@@ -78,6 +76,7 @@ public class Menu : MonoBehaviour {
 					if(GUI.Button(new Rect(0,0 + (100*i),100,50), "Track:" + i.ToString())){
 						raceTrack = (RaceTrack)Instantiate(raceTrackRef, Vector3.zero, Quaternion.identity);
 						raceTrack.loadTrack(i);
+						raceTrack.setState("Racing");
 						GAME_STATE = "RaceTrack";
 						cameraControl.setState("Follow");
 					}

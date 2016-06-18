@@ -49,7 +49,7 @@ public class Editor : MonoBehaviour {
 				}
 			}
 		}
-		Vector2 tile_ref  = parser.getStartPart (mapID);
+		Vector3 tile_ref  = parser.getStartPart (mapID);
 		setStartTile (map[(int)tile_ref.x,(int)tile_ref.y]);
 	}
 
@@ -162,22 +162,24 @@ public class Editor : MonoBehaviour {
 		foreach (RoadPart p in spawnedParts) {
 			if (p.transform.position.x == tile.transform.position.x) {
 				if (p.transform.position.z == tile.transform.position.z) {
-
-					//check if the selected part is the current start part
-					//if not, unset the previous one and set the new one
-					if(startPart == p){
-						//no need to do anything, since it's already set as a start part
-					}
-					else{
-						if(startPart!=null){
-							//unset the previous part
-							startPart.setStartPart(false);
+					//only for straight parts
+					if(p.getID() == 0){
+						//check if the selected part is the current start part
+						//if not, unset the previous one and set the new one
+						if(startPart == p){
+							//no need to do anything, since it's already set as a start part
 						}
-						//set the new part
-						startPart = p;
-						p.setStartPart (true);
+						else{
+							if(startPart!=null){
+								//unset the previous part
+								startPart.setStartPart(false);
+							}
+							//set the new part
+							startPart = p;
+							p.setStartPart (true);
+						}
+						break;
 					}
-					break;
 				}
 			}
 		}
@@ -310,9 +312,10 @@ public class Editor : MonoBehaviour {
 		foreach (RoadPart p in spawnedParts) {
 			//data structure will be: KEY = mapID/X/Z (position) VALUE =  ID of part / Rotation of part
 			PlayerPrefs.SetString(mapID.ToString()+"/"+p.transform.position.x.ToString()+"/"+p.transform.position.z.ToString(), p.getID().ToString()+"/"+p.getRotation().ToString());
-			PlayerPrefs.SetString("Start" + mapID.ToString(), startPart.transform.position.x.ToString() + "/" + startPart.transform.position.z.ToString());
-			//PlayerPrefs.SetString("Path" + mapID.ToString(), 
 		}
+		print (startPart.getRotation ());
+		PlayerPrefs.SetString("Start" + mapID.ToString(), startPart.transform.position.x.ToString() + "/" + startPart.transform.position.z.ToString()+"/"+startPart.getRotation().ToString());
+
 		int partIndex = 0;
 		foreach(RoadPart part in determinePath()){
 			PlayerPrefs.SetString("Path" + mapID.ToString() + "/" + partIndex.ToString(), part.transform.position.x.ToString() + "/" + part.transform.position.z.ToString());
@@ -324,7 +327,32 @@ public class Editor : MonoBehaviour {
 		List<RoadPart> route = new List<RoadPart> ();
 
 		RoadPart oldPart = startPart;
-		RoadPart newPart = startPart.getConnections () [0];
+		RoadPart newPart = new RoadPart ();
+
+		int rot = startPart.getRotation ();
+		Vector3 dir = new Vector3 (0, 0, 0);
+		if (rot == 0) {
+			dir = new Vector3(0,0,1);
+		}
+		else if (rot == 90) {
+			dir = new Vector3(1,0,0);
+		}
+		else if (rot == 180) {
+			dir = new Vector3(0,0,-1);
+		}
+		else if (rot == 270) {
+			dir = new Vector3(-1,0,0);
+		}
+
+		foreach(RoadPart p in startPart.getConnections()){
+			if(p.transform.position.x == (startPart.transform.position+dir).x){
+				if(p.transform.position.z == (startPart.transform.position+dir).z){
+					print ("STARTPART FOUNDOMG");
+					newPart = p;
+				}
+			}
+		}
+
 		route.Add(newPart);
 
 		for (int i=0; i<spawnedParts.Count-1; i++) {

@@ -52,6 +52,28 @@ public class CameraController : MonoBehaviour {
 			}
 			break;
 
+		case "EndRace":
+			if(target!=null){
+				
+				Vector3 velocity = Vector3.zero;
+				Vector3 forward = target.forward * 10.0f;
+				
+				Vector3 pos = target.position;
+				pos.z += 15;
+				pos.x += 10;
+				pos -= forward;
+				pos.y += 10;
+				
+				transform.position = pos;
+				transform.LookAt (target);
+				
+				//transform.position = Vector3.SmoothDamp(transform.position, pos, 
+				//                                     ref velocity,0.05f);
+				
+				
+			}
+			break;
+
 		case "Editor":
 
 			break;

@@ -91,7 +91,7 @@ public class RoadPart : MonoBehaviour {
 	
 	void OnGUI(){
 		if (connections.Count > 0) {
-			//GUI.Box (new Rect (screenPos.x, Screen.height - screenPos.y, 60,20), connections[0].transform.position.x.ToString() + " / " + connections[0].transform.position.z.ToString());
+			//GUI.Box (new Rect (screenPos.x, Screen.height - screenPos.y, 60,20), connections.Count.ToString());
 			//GUI.Box (new Rect (screenPos.x, Screen.height - screenPos.y + 20, 60,20), connections[1].transform.position.x.ToString() + " / " + connections[1].transform.position.z.ToString());
 		}
 	}
