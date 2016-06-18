@@ -15,6 +15,8 @@ public class RaceTrack : MonoBehaviour {
 	public CarController carRef;
 	private CarController car;
 
+	private List<Vector3> waypoints;
+
 	// Use this for initialization
 	void Start () {
 
@@ -22,6 +24,12 @@ public class RaceTrack : MonoBehaviour {
 
 		CameraController cameraControl = Camera.main.GetComponent<CameraController> ();
 		cameraControl.setTarget (car.transform);
+	}
+
+	void Update(){
+		if (car != null) {
+			//print(car.transform.eulerAngles);
+		}
 	}
 	
 	public void loadTrack(int _mapID){
@@ -39,6 +47,8 @@ public class RaceTrack : MonoBehaviour {
 
 		Vector2 tile_ref = parser.getStartPart (mapID);
 		car = (CarController)Instantiate (carRef, new Vector3 (tile_ref.x * 20, 2, tile_ref.y * 20), Quaternion.identity);
+
+		waypoints = parser.getWaypoints (mapID, MAP_WIDTH, MAP_HEIGHT);
 	}
 
 	private void spawnLoadedPart(int x, int z, int ID, int rot){

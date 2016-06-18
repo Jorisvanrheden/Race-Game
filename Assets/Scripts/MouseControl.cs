@@ -14,13 +14,14 @@ public class MouseControl : MonoBehaviour {
 	void Update () {
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 		RaycastHit hit;
+		//mouse hovering over the tiles and light up
 		if (Physics.Raycast (ray, out hit)) {
 			Tile tile = hit.transform.gameObject.GetComponent<Tile>();
 			if(tile!=null){
 				tile.mouseOver();
 			}
 		}
-
+		//spawning and removing parts
 		if(Input.GetMouseButtonUp(0)){
 			if (Physics.Raycast (ray, out hit)) {
 				Tile tile = hit.transform.gameObject.GetComponent<Tile>();
@@ -32,6 +33,7 @@ public class MouseControl : MonoBehaviour {
 				}
 			}
 		}
+		//setting the start tile
 		else if(Input.GetMouseButtonUp(1)){
 			if (Physics.Raycast (ray, out hit)) {
 				Tile tile = hit.transform.gameObject.GetComponent<Tile>();

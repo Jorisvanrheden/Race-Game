@@ -18,6 +18,8 @@ public class Menu : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		cameraControl = Camera.main.GetComponent<CameraController> ();
+
+		print ("TEST");
 	}
 	
 	// Update is called once per frame
