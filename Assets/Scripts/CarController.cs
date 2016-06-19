@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class CarController : MonoBehaviour {
 
+	private RaceTrack track;
+
 	public List<WheelCollider> wheels;
 	public List<GameObject> physicalWheels;
 
@@ -25,10 +27,17 @@ public class CarController : MonoBehaviour {
 
 	public int lapsCompleted = 0;
 	private int totalLaps;
+	private int endPosition = 0;
 
 	private List<float> lapTimes = new List<float>();
 	private float roundTime = 0;
 	private float totalTime = 0;
+
+	private float waypointDistance = 15;
+
+	void Awake(){
+		track = GameObject.Find ("RaceTrack(Clone)").GetComponent<RaceTrack> ();
+	}
 
 	void Start(){
 
@@ -41,44 +50,12 @@ public class CarController : MonoBehaviour {
 	void Update () {
 		if (waypoints != null) {
 
-			if(Vector3.Distance(transform.position, waypoints[currentWaypoint])<15){
-				if(currentWaypoint < waypoints.Count-1){
-					currentWaypoint ++;
-				}
-				else{
-					currentWaypoint = 0;
-
-					if(lapsCompleted<totalLaps){
-						lapsCompleted++;
-
-						//save laptime
-						lapTimes.Add(roundTime);
-						roundTime = 0;
-
-						if(lapsCompleted == totalLaps){
-							//calculate average time and end position
-							foreach(float time in lapTimes)totalTime+=time;
-							finished = true;
-						}
-					}
-				}
-			}
+			updateWaypoints();
+			carResetter();
 
 			roundTime+=Time.deltaTime;
 
-			if(rg.velocity.magnitude<5){
-				resetTimer += Time.deltaTime;
-				if(resetTimer>3){
-					Vector3 resetPos = new Vector3();
-					if(currentWaypoint == 0)resetPos = waypoints[currentWaypoint];
-					else resetPos = waypoints[currentWaypoint-1];
-					resetPos.y = 4;
-					transform.position = resetPos;
 
-					resetTimer = 0;
-				}
-			}
-			else resetTimer = 0;
 		}
 	}
 
@@ -149,12 +126,62 @@ public class CarController : MonoBehaviour {
 		}
 	}
 
-	public void setRandomTorque(){
+	private void carResetter(){
+		if(rg.velocity.magnitude<5){
+			resetTimer += Time.deltaTime;
+			if(resetTimer>3){
+				Vector3 resetPos = new Vector3();
+				if(currentWaypoint == 0)resetPos = waypoints[currentWaypoint];
+				else resetPos = waypoints[currentWaypoint-1];
+				resetPos.y = 4;
+				transform.position = resetPos;
+				
+				resetTimer = 0;
+			}
+		}
+		else resetTimer = 0;
+	}
+
+	private void updateWaypoints(){
+		if(Vector3.Distance(transform.position, waypoints[currentWaypoint])<waypointDistance){
+			if(currentWaypoint < waypoints.Count-1){
+				currentWaypoint ++;
+			}
+			else{
+				currentWaypoint = 0;
+				
+				if(lapsCompleted<totalLaps){
+					lapsCompleted++;
+					
+					//save laptime
+					lapTimes.Add(roundTime);
+					roundTime = 0;
+					
+					if(lapsCompleted == totalLaps){
+						//calculate average time and end position
+						foreach(float time in lapTimes)totalTime+=time;
+						track.calculateEndPosition(this);
+						finished = true;
+					}
+				}
+			}
+		}
+	}
+
+	public void setRandomValues(){
 		maxTorque = 2000 + Random.value * 1000;
+		waypointDistance = 13 + Random.value * 6;
 	}
 
 	public void setLaps(int laps){
 		totalLaps = laps;
+	}
+
+	public void setEndPosition(int position){
+		endPosition = position;
+	}
+	public int getPosition(){
+		return endPosition;
 	}
 
 	public void setWaypoints(List<Vector3> _waypoints){
@@ -167,10 +194,5 @@ public class CarController : MonoBehaviour {
 
 	public float getTotalTime(){
 		return totalTime;
-	}
-
-	void OnGUI(){
-		//GUI.Box(new Rect(0,0,200,200), dir.ToString() + "\n" +dir2.ToString() + "\n" + dir3.ToString());
-		//GUI.Box (new Rect (0, 200, 150,20), waypoints [currentWaypoint].ToString ());
 	}
 }

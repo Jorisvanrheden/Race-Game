@@ -25,11 +25,13 @@ public class MouseControl : MonoBehaviour {
 		if(Input.GetMouseButtonUp(0)){
 			if (Physics.Raycast (ray, out hit)) {
 				Tile tile = hit.transform.gameObject.GetComponent<Tile>();
-				if(tile.getOpen()){
-					editor.spawnPart(tile);
-				}
-				else{
-					editor.deletePart(tile);
+				if(tile!=null){
+					if(tile.getOpen()){
+						editor.spawnPart(tile);
+					}
+					else{
+						editor.deletePart(tile);
+					}
 				}
 			}
 		}
@@ -37,8 +39,10 @@ public class MouseControl : MonoBehaviour {
 		else if(Input.GetMouseButtonUp(1)){
 			if (Physics.Raycast (ray, out hit)) {
 				Tile tile = hit.transform.gameObject.GetComponent<Tile>();
-				if(!tile.getOpen()){
-					editor.setStartTile(tile);
+				if(tile!=null){
+					if(!tile.getOpen()){
+						editor.setStartTile(tile);
+					}
 				}
 			}
 		}

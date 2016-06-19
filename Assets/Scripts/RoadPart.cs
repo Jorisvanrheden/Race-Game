@@ -11,18 +11,12 @@ public class RoadPart : MonoBehaviour {
 	private Vector2 position;
 	
 	private bool isStartPart = false;
-	private Color startColor;
-	
+
 	//every part needs to have two parts that it's attached to
 	private List<RoadPart> connections = new List<RoadPart>();
-	
-	private Vector3 screenPos;
-	
+
 	void Awake(){
 		renderer = GetComponent<Renderer> ();
-		startColor = renderer.material.color;
-		
-		screenPos = Camera.main.WorldToScreenPoint (transform.position);
 	}
 	
 	public void setColor(Color color){
@@ -73,16 +67,6 @@ public class RoadPart : MonoBehaviour {
 	
 	public int getRotation(){
 		return rotation;
-	}
-	
-	//for loading the actual part we place the values from the playerprefs file in this variable
-	//this so we can access it from the editor class again
-	public void setPosition(int x, int y){
-		position = new Vector2 (x, y);
-	}
-	
-	public Vector2 getPosition(){
-		return position;
 	}
 
 	public List<RoadPart> getConnections(){

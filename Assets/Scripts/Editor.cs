@@ -14,12 +14,17 @@ public class Editor : MonoBehaviour {
 
 	private string EDITOR_STATE = "Building";
 
+	public GUIStyle style;
+
 	public List<RoadPart> parts;
 	private List<RoadPart> spawnedParts = new List<RoadPart>();
 
 	private int selectedPart = 0;
 	private RoadPart selectedPreview;
 	private int previewRotation = 0;
+
+	private RoadPart preview0;
+	private RoadPart preview1;
 
 	private RoadPart startPart;
 
@@ -38,7 +43,7 @@ public class Editor : MonoBehaviour {
 		handleInput ();
 	}
 
-	public void loadTrack(){
+	private void loadTrack(){
 		//get save state from the parser
 		Parser parser = new Parser ();
 		for (int i=0; i<MAP_WIDTH; i++) {
@@ -59,6 +64,11 @@ public class Editor : MonoBehaviour {
 				map[i,j] = (Tile)(Instantiate(tile, new Vector3(i, 0, j), Quaternion.identity));
 			}
 		}
+
+		preview0 = (RoadPart)Instantiate(parts[0], new Vector3(-2.9f, 2.34f, 8.05f), Quaternion.identity);
+		preview1 = (RoadPart)Instantiate(parts[1], new Vector3(-1.42f, 2.34f, 8.05f), Quaternion.identity);
+
+		loadTrack ();
 	}
 
 	private void spawnLoadedPart(int x, int z, int ID, int rot){
@@ -241,6 +251,13 @@ public class Editor : MonoBehaviour {
 			selectedPart = 1;
 			updateSelectedPart();
 		}
+
+		else if (Input.GetKeyDown (KeyCode.Tab)) {
+			if(selectedPart==0)selectedPart=1;
+			else if(selectedPart == 1)selectedPart=0;
+			print (selectedPart);
+			updateSelectedPart();
+		}
 	}
 
 	private void checkCompleteTrack(){
@@ -258,55 +275,42 @@ public class Editor : MonoBehaviour {
 	void OnGUI(){
 		switch (EDITOR_STATE) {
 		case "Building":
-			if (GUI.Button (new Rect (0, 0, 50, 30), "Straight")) {
+			if (GUI.Button (new Rect (30, 150, 100, 50), "Press '1'")) {
 				selectedPart = 0;
-				updateSelectedPart();
-			}
-			else if (GUI.Button (new Rect (0, 30, 50, 30), "Corner")) {
+				updateSelectedPart ();
+			} else if (GUI.Button (new Rect (170, 150, 100, 50), "Press '2'")) {
 				selectedPart = 1;
-				updateSelectedPart();
-			}
-		
-			else if (GUI.Button (new Rect (0, 200, 50, 30), "Load")) {
-				loadTrack();
-			}
-			else if (GUI.Button (new Rect (0, 250, 50, 30), "Clear all saves")) {
-				PlayerPrefs.DeleteAll();
-			}
-			else if (GUI.Button (new Rect (0, 320, 50, 30), "Editing path")) {
-				EDITOR_STATE = "Editing";
-			}
+				updateSelectedPart ();
+			} 
 
-			if(ready && startPart!=null){
-				if (GUI.Button (new Rect (0, 500, 100,100), "SAVE")) {
-					Save();
+			if (ready && startPart != null) {
+				if (GUI.Button (new Rect (0, 500, 200,150), "SAVE")) {
+					Save ();
 				}
-			}
-
-			break;
-		case "Editing":
-
-			if (GUI.Button (new Rect (0, 320, 50, 30), "Building")) {
-				EDITOR_STATE = "Building";
 			}
 			break;
 		}
-
 	}
 
 	public void setMapID(int ID){
 		mapID = ID;
 	}
 
-	private void Save(){
+	public void clearMap(){
 		//make sure the file is empty first, so you can fill the file with new data, without keeping any of the older state
 		for (int i=0; i<MAP_WIDTH; i++) {
 			for (int j=0; j<MAP_HEIGHT; j++) {
 				PlayerPrefs.DeleteKey(mapID.ToString()+"/"+i.ToString()+"/"+j.ToString());
 			}
+		}
+		for (int i=0; i<MAP_WIDTH*MAP_HEIGHT; i++) {
 			PlayerPrefs.DeleteKey("Path" + mapID.ToString() + "/" + i.ToString());
 		}
 		PlayerPrefs.DeleteKey ("Start" + mapID.ToString ());
+	}
+
+	private void Save(){
+		clearMap ();
 
 		//save the actual data
 		foreach (RoadPart p in spawnedParts) {
@@ -347,7 +351,6 @@ public class Editor : MonoBehaviour {
 		foreach(RoadPart p in startPart.getConnections()){
 			if(p.transform.position.x == (startPart.transform.position+dir).x){
 				if(p.transform.position.z == (startPart.transform.position+dir).z){
-					print ("STARTPART FOUNDOMG");
 					newPart = p;
 				}
 			}
@@ -382,6 +385,10 @@ public class Editor : MonoBehaviour {
 		if (selectedPreview != null) {
 			Destroy(selectedPreview.gameObject);
 		}
+
+		Destroy (preview0);
+		Destroy (preview1);
+
 		Destroy (gameObject);
 	}
 }

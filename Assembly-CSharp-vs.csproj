@@ -52,6 +52,7 @@
      <Compile Include="Assets\Scripts\Menu.cs" />
      <Compile Include="Assets\Scripts\MouseControl.cs" />
      <Compile Include="Assets\Scripts\Parser.cs" />
+     <Compile Include="Assets\Scripts\Preview.cs" />
      <Compile Include="Assets\Scripts\RaceTrack.cs" />
      <Compile Include="Assets\Scripts\RoadPart.cs" />
      <Compile Include="Assets\Scripts\SaveData.cs" />

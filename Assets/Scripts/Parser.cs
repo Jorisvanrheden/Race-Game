@@ -46,7 +46,6 @@ public class Parser {
 		tile_ref.x = int.Parse(data.Substring(0,dash_1));
 		tile_ref.y = int.Parse(data.Substring(dash_1+1,dash_2-1 - dash_1));
 		tile_ref.z = int.Parse (data.Substring (dash_2 + 1, data.Length - 1 - dash_2));
-		Debug.Log (tile_ref);
 
 		return tile_ref;
 	}

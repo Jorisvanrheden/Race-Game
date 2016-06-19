@@ -5,14 +5,17 @@ public class CameraController : MonoBehaviour {
 
 	private string CAMERA_STATE = "Menu";
 
-	private Vector3 startPosition;
-	private Quaternion startRotation;
+	private Vector3 menuPosition;
+	private Vector3 menuRotation;
+
+	private Vector3 editorPosition = new Vector3(3.9f, 9.8f, 4.46f);
+	private Vector3 editorRotation = new Vector3 (90, 0, 0);
 
 	private Transform target;
 
 	void Awake(){
-		startPosition = transform.position;
-		startRotation = transform.rotation;
+		menuPosition = Camera.main.transform.position;
+		menuRotation = Camera.main.transform.rotation.eulerAngles;
 	}
 
 	// Use this for initialization
@@ -33,12 +36,9 @@ public class CameraController : MonoBehaviour {
 		case "Follow":
 			if(target!=null){
 
-				Vector3 velocity = Vector3.zero;
 				Vector3 forward = target.forward * 10.0f;
 
 				Vector3 pos = target.position;
-				//pos.z += 10;
-				//pos.x += 5;
 				pos -= forward;
 				pos.y += 5;
 
@@ -55,7 +55,6 @@ public class CameraController : MonoBehaviour {
 		case "EndRace":
 			if(target!=null){
 				
-				Vector3 velocity = Vector3.zero;
 				Vector3 forward = target.forward * 10.0f;
 				
 				Vector3 pos = target.position;
@@ -83,9 +82,17 @@ public class CameraController : MonoBehaviour {
 
 	public void setState(string state){
 		if (state == "Editor") {
-			transform.position = startPosition;
-			transform.rotation = startRotation;
+			transform.position = editorPosition;
+			transform.eulerAngles = editorRotation;
 
+		}
+		else if (state == "Menu") {
+			transform.position = menuPosition;
+			transform.eulerAngles = menuRotation;	
+		}
+		else if (state == "RaceTrack") {
+			
+			
 		}
 		CAMERA_STATE = state;
 	}

@@ -17,9 +17,7 @@ public class RaceTrack : MonoBehaviour {
 
 	private List<Vector3> waypoints;
 	private int totalLaps = 3;
-
-	private int index = 0;
-
+	
 	private string RACE_STATE;
 
 	private CameraController cameraControl;
@@ -62,8 +60,8 @@ public class RaceTrack : MonoBehaviour {
 
 		spawnCar (tile_ref.x - 0.1f, tile_ref.y - 0.1f, tile_ref.z, totalLaps);
 		spawnCar (tile_ref.x + 0.1f, tile_ref.y - 0.1f, tile_ref.z, totalLaps);
-		spawnCar (tile_ref.x - 0.1f, tile_ref.y - 0.5f, tile_ref.z, totalLaps);
-		spawnCar (tile_ref.x + 0.1f, tile_ref.y - 0.5f, tile_ref.z, totalLaps);
+		//spawnCar (tile_ref.x - 0.1f, tile_ref.y - 0.5f, tile_ref.z, totalLaps);
+		//spawnCar (tile_ref.x + 0.1f, tile_ref.y - 0.5f, tile_ref.z, totalLaps);
 
 		cameraControl.setTarget (car.transform);
 	}
@@ -73,7 +71,7 @@ public class RaceTrack : MonoBehaviour {
 		cars.Add (car);
 		car.AI = true;
 		car.setLaps (laps);
-		car.setRandomTorque ();
+		car.setRandomValues ();
 		car.setWaypoints (waypoints);
 	}
 
@@ -97,16 +95,46 @@ public class RaceTrack : MonoBehaviour {
 		RACE_STATE = state;
 	}
 
+	public void calculateEndPosition(CarController _car){
+		//identify what car on the field is the passed through reference car
+		int carIndex = 0;
+		for (int i=0; i<cars.Count; i++) {
+			if(cars[i] == _car)carIndex = i;
+		}
+
+		//save all times to compare with and determine your position
+		List<float> positions = new List<float> ();
+		for(int i=0;i<cars.Count;i++){
+			positions.Add(cars[i].getTotalTime());
+		}
+
+		//calculate end position
+		int finalPosition = 1;
+		for(int i=0;i<positions.Count;i++){
+			if(i!=carIndex){
+				if(positions[carIndex]>positions[i]){
+					if(positions[i]!=0)finalPosition++;
+				}
+			}
+		}
+		//set the end position
+		cars [carIndex].setEndPosition (finalPosition);
+	}
+
 	void OnGUI(){
 		switch (RACE_STATE) {
 		case "Racing":
 			bool finished = true;
 			for(int i=0;i<cars.Count;i++){
-				GUI.Box(new Rect(0,i*30, 100,30), "Car " + i.ToString() + " - LAP " + cars[i].lapsCompleted.ToString() + "/3");
+				GUI.Box(new Rect(0,i*30, 100,30), "Car " + i.ToString() + " - LAP " + cars[i].lapsCompleted.ToString() + "/" + totalLaps.ToString());
 				if(!cars[i].finished){
 					finished = false;
 				}
 			}
+
+			//make an exception for you own car if you're done already
+			if(cars[0].finished)finished = true;
+
 			if(finished){
 				cars[0].AI = true;
 				cameraControl.setState("EndRace");
@@ -116,11 +144,15 @@ public class RaceTrack : MonoBehaviour {
 			break;
 		case "Score":
 			for(int i=0;i<cars.Count;i++){
-				GUI.Box(new Rect(i*200, 0, 200, 30), "Car " + i.ToString() + " total: " + Mathf.Round(cars[i].getTotalTime() * 100f / 100f) + " seconds");
+				if(cars[i].getPosition()!=0)GUI.Box(new Rect(i*200, 0, 200, 30), "Position: " + cars[i].getPosition());
+				GUI.Box(new Rect(i*200, 30, 200, 30), "Car " + (i+1).ToString() + " total: " + Mathf.Round(cars[i].getTotalTime() * 100)/100 + " seconds");
 				for(int j=0;j<cars[i].getRoundTimes().Count;j++){
-					GUI.Box(new Rect(i*200, 50 + j*30, 200, 30), "Round " + j.ToString() + ": " + Mathf.Round(cars[i].getRoundTimes()[j] * 100f / 100f).ToString()+" seconds");
+					GUI.Box(new Rect(i*200, 70 + j*30, 200, 30), "Round " + (j+1).ToString() + ": " + Mathf.Round(cars[i].getRoundTimes()[j] * 100)/100 +" seconds");
 				}
 			}
+
+			GUI.Box(new Rect(Screen.width/2-150, Screen.height - 100, 300, 100), "\n\nYou finished in place " + cars[0].getPosition());
+
 			break;
 		}
 	}
