@@ -4,6 +4,7 @@ using System.Collections;
 public class Menu : MonoBehaviour {
 
 	private CameraController cameraControl;
+	private AudioController audio;
 
 	public Editor editorRef;
 	private Editor editor;
@@ -16,7 +17,7 @@ public class Menu : MonoBehaviour {
 
 	private string GAME_STATE = "Menu";
 
-	private int totalMaps = 3;
+	private int totalMaps = 5;
 	private int trackSelectID = 99;
 
 	public GameObject menuAccesories;
@@ -28,8 +29,11 @@ public class Menu : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		cameraControl = Camera.main.GetComponent<CameraController> ();
+		audio = Camera.main.GetComponent<AudioController> ();
 
 		startPos = menuAccesories.transform.position;
+
+		audio.playClip(0);
 
 	}
 	
@@ -44,33 +48,46 @@ public class Menu : MonoBehaviour {
 		case "Menu":
 			GUI.Box(new Rect(Screen.width/2 - 150, 50, 300, 100), "Racing Game", style);
 
-
-			if(GUI.Button(new Rect(Screen.width - 250,300,200,100), "\nEditor")){
+			if(GUI.Button(new Rect(Screen.width - 250,450,200,100), "\nEditor")){
 				GAME_STATE = "ChooseEditorMap";
+				audio.playEffect(0);
 			}
-			else if(GUI.Button(new Rect(Screen.width - 250,450,200,100), "\nRacetrack")){
+			else if(GUI.Button(new Rect(Screen.width - 250,300,200,100), "\nRacetrack")){
 				GAME_STATE = "ChooseRacetrack";
+				audio.playEffect(0);
 			}
+			else if(GUI.Button(new Rect(Screen.width - 250,650,200,100), "\nQuit game")){
+				Application.Quit();
+			}
+
 			break;
 
 		case "Editor":
+
 			if(GUI.Button(new Rect(Screen.width-100,0,100,50), "Back to Menu")){
 				editor.Destroy();
 				
 				goToMenu();
+
+				audio.playClip(0);
+				audio.playEffect(0);
 			}
 
-			else if (GUI.Button (new Rect (0, 300, 200,150), "Clear map")) {
+			else if (GUI.Button (new Rect (Screen.width-100, Screen.height-50, 100,50), "Delete map")) {
 				editor.clearMap ();
 				editor.Destroy();
 
 				GAME_STATE = "ChooseEditorMap";
 				cameraControl.setState("Menu");
+
+				audio.playClip(0);
+				audio.playEffect(0);
 			}
 
 			break;
 
 		case "ChooseEditorMap":
+			GUI.Box(new Rect(Screen.width/2 - 150, 50, 300, 100), "Editor", style);
 			for(int i=0;i<totalMaps;i++){
 
 				string content = "";
@@ -79,26 +96,32 @@ public class Menu : MonoBehaviour {
 				}
 				else content = "EMPTY: ";
 
-				if(GUI.Button(new Rect(0,0 + (100*i),100,50), content + i.ToString())){
+				if(GUI.Button(new Rect(0 + (230*i),180 ,200,100), content + (i+1).ToString())){
 					editor = (Editor)Instantiate(editorRef, Vector3.zero, Quaternion.identity);
 
 					editor.setMapID(i);
 
 					GAME_STATE = "Editor";
 					cameraControl.setState("Editor");
+
+					audio.playClip(1);
+					audio.playEffect(0);
 				}
 			}
 			if(GUI.Button(new Rect(Screen.width-100,0,100,50), "Back to Menu")){
 				
 				goToMenu();
+				audio.playEffect(0);
 			}
 
 			break;
 
 		case "ChooseRacetrack":
+			GUI.Box(new Rect(Screen.width/2 - 150, 50, 300, 100), "Tracks", style);
+
 			for(int i=0;i<totalMaps;i++){
 				if(PlayerPrefs.HasKey("Start"+i.ToString())){
-					if(GUI.Button(new Rect(0,0 + (100*i),100,50), "Track:" + i.ToString())){
+					if(GUI.Button(new Rect(0 + (230*i),180 ,200,100), "Track:" + (i+1).ToString())){
 						trackSelectID = i;
 
 						if(preview!=null){
@@ -107,11 +130,13 @@ public class Menu : MonoBehaviour {
 						}
 						preview = (Preview)Instantiate (previewRef, new Vector3(0,0,0), Quaternion.identity);
 						preview.loadTrack (i);
+
+						audio.playEffect(0);
 					}
 				}
 			}
 			if(trackSelectID!=99){
-				if(GUI.Button(new Rect(Screen.width-300,0,150,100), "Race!")){
+				if(GUI.Button(new Rect(Screen.width-550,0,250,150), "Race!")){
 					//hide the menu items
 					menuAccesories.transform.position = new Vector3(0,-10,0);
 					if(preview!=null){
@@ -125,11 +150,16 @@ public class Menu : MonoBehaviour {
 					
 					GAME_STATE = "RaceTrack";
 					cameraControl.setState("Follow");
+
+					audio.stopClip();
+					audio.playEffect(0);
 				}
 			}
 			if(GUI.Button(new Rect(Screen.width-100,0,100,50), "Back to Menu")){
 				
 				goToMenu();
+
+				audio.playEffect(0);
 			}
 			
 			break;
@@ -139,6 +169,9 @@ public class Menu : MonoBehaviour {
 				raceTrack.Destroy();
 
 				goToMenu();
+
+				audio.playClip(0);
+				audio.playEffect(0);
 			}
 			break;
 		}

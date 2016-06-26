@@ -22,7 +22,7 @@ public class MouseControl : MonoBehaviour {
 			}
 		}
 		//spawning and removing parts
-		if(Input.GetMouseButtonUp(0)){
+		if(Input.GetMouseButtonDown(0)){
 			if (Physics.Raycast (ray, out hit)) {
 				Tile tile = hit.transform.gameObject.GetComponent<Tile>();
 				if(tile!=null){

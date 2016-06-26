@@ -23,12 +23,19 @@ public class Editor : MonoBehaviour {
 	private RoadPart selectedPreview;
 	private int previewRotation = 0;
 
-	private RoadPart preview0;
-	private RoadPart preview1;
+	public Texture2D p0;
+	public Texture2D p1;
+	public Texture2D t0;
+	public Texture2D t1;
 
 	private RoadPart startPart;
 
 	private bool ready = false;
+	private AudioController audio;
+
+	void Awake(){
+		audio = Camera.main.GetComponent<AudioController> ();
+	}
 	
 	// Use this for initialization
 	void Start () {
@@ -54,8 +61,11 @@ public class Editor : MonoBehaviour {
 				}
 			}
 		}
-		Vector3 tile_ref  = parser.getStartPart (mapID);
-		setStartTile (map[(int)tile_ref.x,(int)tile_ref.y]);
+
+		if (PlayerPrefs.GetString ("Start" + mapID.ToString ()).Length > 0) {
+			Vector3 tile_ref  = parser.getStartPart (mapID);
+			setStartTile (map[(int)tile_ref.x,(int)tile_ref.y]);
+		}
 	}
 
 	private void spawnTiles(){
@@ -65,14 +75,11 @@ public class Editor : MonoBehaviour {
 			}
 		}
 
-		preview0 = (RoadPart)Instantiate(parts[0], new Vector3(-2.9f, 2.34f, 8.05f), Quaternion.identity);
-		preview1 = (RoadPart)Instantiate(parts[1], new Vector3(-1.42f, 2.34f, 8.05f), Quaternion.identity);
-
 		loadTrack ();
 	}
 
 	private void spawnLoadedPart(int x, int z, int ID, int rot){
-		RoadPart newPart = (RoadPart)Instantiate (parts [ID], new Vector3 (x,1,z), Quaternion.Euler (0, rot, 0));
+		RoadPart newPart = (RoadPart)Instantiate (parts [ID], new Vector3 (x,0.3f,z), Quaternion.Euler (0, rot, 0));
 		spawnedParts.Add (newPart);
 		//set some information that is needed to save the made track
 		newPart.setID (ID);
@@ -92,13 +99,11 @@ public class Editor : MonoBehaviour {
 
 	public void spawnPart(Tile origin){
 
-		RoadPart newPart = (RoadPart)Instantiate (parts [selectedPart], new Vector3 (origin.transform.position.x, 1, origin.transform.position.z), Quaternion.Euler (0, previewRotation, 0));
+		RoadPart newPart = (RoadPart)Instantiate (parts [selectedPart], new Vector3 (origin.transform.position.x, 0.3f, origin.transform.position.z), Quaternion.Euler (0, previewRotation, 0));
 		spawnedParts.Add (newPart);
 		//set some information that is needed to save the made track
 		newPart.setID (selectedPart);
 		newPart.setRotation (previewRotation);
-
-		print (newPart.getRotation ());
 
 		//find and save the neighbouring parts to be able to determine if the track is connected completely
 		foreach (RoadPart connection in findConnectingParts(newPart)) {
@@ -109,6 +114,8 @@ public class Editor : MonoBehaviour {
 		origin.setOpen(false);
 
 		checkCompleteTrack ();
+
+		audio.playEffect (1);
 
 	}
 
@@ -206,12 +213,20 @@ public class Editor : MonoBehaviour {
 					}
 
 					//if its a start part, make sure to remove that as well
-					if(startPart = p) startPart = null;
-
+					if(startPart!=null){
+						if(startPart.transform.position.x == p.transform.position.x){
+							if(startPart.transform.position.z == p.transform.position.z){
+								startPart = null;
+							}
+						}
+					}
+						
 					spawnedParts.Remove(p);
 					Destroy(p.gameObject);
 
 					origin.setOpen(true);
+
+					audio.playEffect (2);
 
 					break;
 				}
@@ -226,7 +241,7 @@ public class Editor : MonoBehaviour {
 			Destroy (selectedPreview.gameObject);
 		}
 
-		selectedPreview = (RoadPart)Instantiate (parts [selectedPart], new Vector3 (-1.1f, 2.34f, 1.7f), Quaternion.Euler (0, previewRotation, 0));
+		selectedPreview = (RoadPart)Instantiate (parts [selectedPart], new Vector3 (0.7f, 5.44f, 2.74f), Quaternion.Euler (0, previewRotation, 0));
 	}
 
 	private void handleInput(){
@@ -255,7 +270,6 @@ public class Editor : MonoBehaviour {
 		else if (Input.GetKeyDown (KeyCode.Tab)) {
 			if(selectedPart==0)selectedPart=1;
 			else if(selectedPart == 1)selectedPart=0;
-			print (selectedPart);
 			updateSelectedPart();
 		}
 	}
@@ -275,19 +289,43 @@ public class Editor : MonoBehaviour {
 	void OnGUI(){
 		switch (EDITOR_STATE) {
 		case "Building":
-			if (GUI.Button (new Rect (30, 150, 100, 50), "Press '1'")) {
+
+			GUI.Box(new Rect(20, 0, 230, 40), "Available parts:");
+			if (GUI.Button (new Rect (20, 50, 100, 100), p0)) {
 				selectedPart = 0;
 				updateSelectedPart ();
-			} else if (GUI.Button (new Rect (170, 150, 100, 50), "Press '2'")) {
+			} else if (GUI.Button (new Rect (150, 50, 100, 100), p1)) {
 				selectedPart = 1;
 				updateSelectedPart ();
 			} 
 
-			if (ready && startPart != null) {
-				if (GUI.Button (new Rect (0, 500, 200,150), "SAVE")) {
+			if (GUI.Button (new Rect (20, Screen.height - 600, 100, 100), t0)) {
+				previewRotation -= 90;
+				if(previewRotation < 0)previewRotation +=360;
+				updateSelectedPart();
+			}
+			else if(GUI.Button (new Rect (150, Screen.height - 600, 100, 100), t1)) {
+				previewRotation += 90;
+				if(previewRotation >= 360)previewRotation -=360;
+				updateSelectedPart();
+			}
+
+			GUI.Box(new Rect(20, 170, 230, 80), "\n\nPress TAB to switch part");
+			GUI.Box(new Rect(20, Screen.height - 480, 230, 80), "\n\nPress E/Q to rotate the part");
+			GUI.Box(new Rect(20, Screen.height - 370, 400, 80), "\n\nCurrent: ");
+
+
+			string toDoBeforeSave = "TO DO before saving:";
+			if (ready && startPart!=null){
+				if (GUI.Button (new Rect (Screen.width-300, 500, 300,150), "SAVE")) {
 					Save ();
 				}
+				toDoBeforeSave = "TO DO before save:" + "\nAll ready!";
 			}
+			GUI.Box(new Rect(Screen.width-300, 100, 300, 50), toDoBeforeSave);
+			if(startPart == null)GUI.Box(new Rect(Screen.width-300, 260, 300, 60), "\nRight-mouseclick on a straight part to \nselect the starting position");
+			if(!ready)GUI.Box(new Rect(Screen.width-300, 200, 300, 60), "\nMake the track completely circular!");
+
 			break;
 		}
 	}
@@ -317,7 +355,6 @@ public class Editor : MonoBehaviour {
 			//data structure will be: KEY = mapID/X/Z (position) VALUE =  ID of part / Rotation of part
 			PlayerPrefs.SetString(mapID.ToString()+"/"+p.transform.position.x.ToString()+"/"+p.transform.position.z.ToString(), p.getID().ToString()+"/"+p.getRotation().ToString());
 		}
-		print (startPart.getRotation ());
 		PlayerPrefs.SetString("Start" + mapID.ToString(), startPart.transform.position.x.ToString() + "/" + startPart.transform.position.z.ToString()+"/"+startPart.getRotation().ToString());
 
 		int partIndex = 0;
@@ -331,7 +368,7 @@ public class Editor : MonoBehaviour {
 		List<RoadPart> route = new List<RoadPart> ();
 
 		RoadPart oldPart = startPart;
-		RoadPart newPart = new RoadPart ();
+		RoadPart newPart = null;
 
 		int rot = startPart.getRotation ();
 		Vector3 dir = new Vector3 (0, 0, 0);
@@ -385,9 +422,6 @@ public class Editor : MonoBehaviour {
 		if (selectedPreview != null) {
 			Destroy(selectedPreview.gameObject);
 		}
-
-		Destroy (preview0);
-		Destroy (preview1);
 
 		Destroy (gameObject);
 	}

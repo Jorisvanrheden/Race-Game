@@ -11,7 +11,6 @@ public class Parser {
 		string data = PlayerPrefs.GetString (mapID.ToString()+"/"+x.ToString () + "/" + z.ToString ());
 		string newIDString = "";
 		string newRotationString = "";
-
 		for (int i=0; i<data.Length; i++) {
 			if(data[i].ToString() == "/"){
 				newIDString = data.Substring(0,i);

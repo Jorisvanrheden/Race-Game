@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class CarController : MonoBehaviour {
 
 	private RaceTrack track;
+	private AudioSource source;
 
 	public List<WheelCollider> wheels;
 	public List<GameObject> physicalWheels;
@@ -37,6 +38,7 @@ public class CarController : MonoBehaviour {
 
 	void Awake(){
 		track = GameObject.Find ("RaceTrack(Clone)").GetComponent<RaceTrack> ();
+		source = GetComponent<AudioSource> ();
 	}
 
 	void Start(){
@@ -51,7 +53,16 @@ public class CarController : MonoBehaviour {
 		if (waypoints != null) {
 
 			updateWaypoints();
-			carResetter();
+
+
+			if(AI){
+				carResetter();
+			}
+			else if(Input.GetKeyDown(KeyCode.R)){
+				resetCar();
+			}
+
+			soundHandler();
 
 			roundTime+=Time.deltaTime;
 
@@ -130,16 +141,39 @@ public class CarController : MonoBehaviour {
 		if(rg.velocity.magnitude<5){
 			resetTimer += Time.deltaTime;
 			if(resetTimer>3){
-				Vector3 resetPos = new Vector3();
-				if(currentWaypoint == 0)resetPos = waypoints[currentWaypoint];
-				else resetPos = waypoints[currentWaypoint-1];
-				resetPos.y = 4;
-				transform.position = resetPos;
+				resetCar();
 				
 				resetTimer = 0;
 			}
 		}
 		else resetTimer = 0;
+	}
+
+	private void resetCar(){
+		//reset speed
+		rg.velocity = new Vector3(0,0,0);
+
+		//set position
+		int straightWaypoint = track.getLatestStraightPoint (currentWaypoint);
+		if (straightWaypoint == 0) {
+			straightWaypoint = waypoints.Count-1;
+		}
+		Vector3 resetPos = new Vector3();
+		resetPos = waypoints [straightWaypoint];
+		resetPos.y = 4;
+
+		transform.position = resetPos;
+
+		//set rotation
+		Vector3 rot = track.resetCarRotation ((int)(resetPos.x/20), (int)(resetPos.z/20));
+		transform.eulerAngles = rot;
+
+	}
+
+	private void soundHandler(){
+		float newPitch = 1 + (rg.velocity.magnitude/40);
+		if(newPitch>2)newPitch = 2;
+		source.pitch = newPitch;
 	}
 
 	private void updateWaypoints(){
@@ -170,7 +204,7 @@ public class CarController : MonoBehaviour {
 
 	public void setRandomValues(){
 		maxTorque = 2000 + Random.value * 1000;
-		waypointDistance = 13 + Random.value * 6;
+		waypointDistance = 11 + Random.value * 6;
 	}
 
 	public void setLaps(int laps){

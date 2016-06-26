@@ -6,6 +6,9 @@ public class RaceTrack : MonoBehaviour {
 
 	public int mapID;
 
+	public GameObject flag;
+	private GameObject flagHolder;
+
 	public List<RoadPart> parts;
 	private List<RoadPart> spawnedParts = new List<RoadPart>();
 
@@ -28,7 +31,7 @@ public class RaceTrack : MonoBehaviour {
 	}
 	// Use this for initialization
 	void Start () {
-		//loadTrack ();
+
 	}
 
 	void Update(){
@@ -52,16 +55,24 @@ public class RaceTrack : MonoBehaviour {
 
 		Vector3 tile_ref = parser.getStartPart (mapID);
 
+		flagHolder = (GameObject)Instantiate(flag, new Vector3 (tile_ref.x * 20, 10f, tile_ref.y * 20), Quaternion.Euler(new Vector3(0,tile_ref.z+90, 0)));
+
+		Vector2 dir = new Vector2 (0, 0);
+		if(tile_ref.z == 90)dir = new Vector2(1,0);
+		else if(tile_ref.z == 180)dir = new Vector2(0,-1);
+		else if(tile_ref.z == 270)dir = new Vector2(-1,0);
+		else if(tile_ref.z == 0)dir = new Vector2(0,1);
+
 		CarController car = (CarController)Instantiate (carRef, new Vector3 (tile_ref.x * 20, 2, tile_ref.y * 20), Quaternion.Euler(new Vector3(0,tile_ref.z, 0)));
 		cars.Add (car);
 		car.AI = false;
 		car.setLaps (totalLaps);
 		car.setWaypoints (waypoints);
 
-		spawnCar (tile_ref.x - 0.1f, tile_ref.y - 0.1f, tile_ref.z, totalLaps);
-		spawnCar (tile_ref.x + 0.1f, tile_ref.y - 0.1f, tile_ref.z, totalLaps);
-		//spawnCar (tile_ref.x - 0.1f, tile_ref.y - 0.5f, tile_ref.z, totalLaps);
-		//spawnCar (tile_ref.x + 0.1f, tile_ref.y - 0.5f, tile_ref.z, totalLaps);
+		spawnCar (tile_ref.x - (0.15f*dir.y), tile_ref.y - (0.15f*dir.x), tile_ref.z, totalLaps);
+		spawnCar (tile_ref.x + (0.15f*dir.y), tile_ref.y + (0.15f*dir.x), tile_ref.z, totalLaps);
+		spawnCar (tile_ref.x - (0.30f*dir.y), tile_ref.y - (0.30f*dir.x), tile_ref.z, totalLaps);
+		spawnCar (tile_ref.x + (0.30f*dir.y), tile_ref.y + (0.30f*dir.x), tile_ref.z, totalLaps);
 
 		cameraControl.setTarget (car.transform);
 	}
@@ -88,11 +99,35 @@ public class RaceTrack : MonoBehaviour {
 		foreach (CarController car in cars) {
 			Destroy (car.gameObject);
 		}
+		Destroy (flagHolder.gameObject);
 		Destroy (gameObject);
 	}
 
 	public void setState(string state){
 		RACE_STATE = state;
+	}
+
+	public int getLatestStraightPoint (int current){
+		Parser parser = new Parser ();
+
+		if (current == 0)
+			return current;
+
+		if (parser.getSaveFile (mapID, (int)waypoints [current].x / 20, (int)waypoints [current].z / 20).ID == 1) {
+			return getLatestStraightPoint(current-1);
+		}
+		else{
+			return current;
+		}
+	}
+
+	public Vector3 resetCarRotation(int x, int y){
+		Parser parser = new Parser ();
+
+		Vector3 rot = new Vector3 (0, 0, 0);
+		rot.y = parser.getSaveFile (mapID, x, y).rotation;
+
+		return rot;
 	}
 
 	public void calculateEndPosition(CarController _car){
@@ -124,9 +159,13 @@ public class RaceTrack : MonoBehaviour {
 	void OnGUI(){
 		switch (RACE_STATE) {
 		case "Racing":
+
+			GUI.Box(new Rect(0,0, 200,100), "\n\nLAP " + (cars[0].lapsCompleted+1).ToString() + "/" + totalLaps.ToString());
+
+			GUI.Box(new Rect(0,150, 200,50), "\nPress 'R' to reset your car!");
+
 			bool finished = true;
 			for(int i=0;i<cars.Count;i++){
-				GUI.Box(new Rect(0,i*30, 100,30), "Car " + i.ToString() + " - LAP " + cars[i].lapsCompleted.ToString() + "/" + totalLaps.ToString());
 				if(!cars[i].finished){
 					finished = false;
 				}
@@ -145,7 +184,9 @@ public class RaceTrack : MonoBehaviour {
 		case "Score":
 			for(int i=0;i<cars.Count;i++){
 				if(cars[i].getPosition()!=0)GUI.Box(new Rect(i*200, 0, 200, 30), "Position: " + cars[i].getPosition());
+
 				GUI.Box(new Rect(i*200, 30, 200, 30), "Car " + (i+1).ToString() + " total: " + Mathf.Round(cars[i].getTotalTime() * 100)/100 + " seconds");
+
 				for(int j=0;j<cars[i].getRoundTimes().Count;j++){
 					GUI.Box(new Rect(i*200, 70 + j*30, 200, 30), "Round " + (j+1).ToString() + ": " + Mathf.Round(cars[i].getRoundTimes()[j] * 100)/100 +" seconds");
 				}
